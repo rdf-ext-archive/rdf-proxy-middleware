@@ -3,6 +3,7 @@ var absoluteUrl = require('absolute-url')
 var bodyParser = require('rdf-body-parser')
 var clone = require('lodash/clone')
 var formats = require('rdf-formats-common')()
+var hijackResponse = require('hijackresponse')
 var rdf = require('rdf-ext')
 var rdfFetch = require('rdf-fetch')
 var url = require('url')
@@ -30,6 +31,41 @@ function proxy (endpoint, pathname, options) {
     }).catch(function (err) {
       next(err)
     })
+  }
+}
+
+proxy.forward = function (from, to) {
+  return function (req, res, next) {
+    hijackResponse(res, function (err, res) {
+      var data
+
+      res.on('data', function (chunk) {
+        data = data ? data + chunk : chunk
+      })
+
+      res.on('end', function () {
+        var mediaType = res.req.accepts(formats.parsers.list())
+
+        formats.parsers.parse(mediaType, data.toString()).then(function (graph) {
+          graph = proxy.patchGraph(graph, from, to)
+
+          return formats.serializers.serialize(mediaType, graph).then(function (serialized) {
+            delete res._headers['content-length']
+            res.end(serialized)
+          })
+        }).catch(function (err) {
+          res.unhijack()
+          next(err)
+        })
+      })
+
+      res.on('error', function (err) {
+        res.unhijack()
+        next(err)
+      })
+    })
+
+    next()
   }
 }
 
