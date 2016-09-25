@@ -35,7 +35,16 @@ function proxy (endpoint, pathname, options) {
 }
 
 proxy.forward = function (from, to) {
+  var fromUrl = url.parse(from)
+  var toUrl = url.parse(to)
+
   return function (req, res, next) {
+    var host = req.headers.host
+
+    if (req.headers.host.indexOf(fromUrl.host) === 0) {
+      req.headers.host = toUrl.host + req.headers.host.slice(fromUrl.host.length)
+    }
+
     hijackResponse(res, function (err, res) {
       var data
 
@@ -51,6 +60,7 @@ proxy.forward = function (from, to) {
 
           return formats.serializers.serialize(mediaType, graph).then(function (serialized) {
             delete res._headers['content-length']
+            res._headers.host = host
             res.end(serialized)
           })
         }).catch(function (err) {
