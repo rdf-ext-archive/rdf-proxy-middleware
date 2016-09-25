@@ -26,7 +26,8 @@
     "lodash": "^4.14.2",
     "rdf-body-parser": "^0.3.4",
     "rdf-fetch": "^0.3.3",
-    "rdf-formats-common": "^0.3.1"
+    "rdf-formats-common": "^0.3.1",
+    "bluebird": "^3.4.6"
   },
   "devDependencies": {
     "express": "^4.14.0",
