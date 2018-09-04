@@ -1,3 +1,5 @@
+# This package is no longer maintained and not compatible with the latest RDF-Ext version
+
 # rdf-proxy-middleware
 
 `rdf-proxy-middleware` is a reverse proxy middleware for RDF data with media type translation.
